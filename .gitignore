@@ -56,7 +56,9 @@ exts.deps.generated.kit
 *.fbx
 *.obj
 *.mat
-
+*.usd
+*.usda
+*.usdz
 *.suo
 
 # ignore the autoexec.lst file
