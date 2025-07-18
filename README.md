@@ -151,7 +151,7 @@ Navigate to the corresponding binary directory for your platform and run the exe
 **Linux:**
 ```bash
 cd _build/linux-x86_64/release
-./isaac-sim.sh
+./isaac-sim.sh --allow-root
 ```
 
 **Windows:**
