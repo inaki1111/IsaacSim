@@ -21,10 +21,10 @@ class UR5GraspPolicy(PolicyController):
             usd_path = os.path.join(os.path.dirname(__file__), "ur5.usdz")
         super().__init__(name, prim_path, root_path, usd_path, position, orientation)
 
-        policy_dir = os.path.dirname(__file__)
+        dir = os.path.dirname(__file__)
         self.load_policy(
-            os.path.join(policy_dir, "policy.pt"),
-            os.path.join(policy_dir, "env.yaml"),
+            os.path.join(dir, "policy.pt"),
+            os.path.join(dir, "env.yaml"),
         )
 
         self.object           = obj

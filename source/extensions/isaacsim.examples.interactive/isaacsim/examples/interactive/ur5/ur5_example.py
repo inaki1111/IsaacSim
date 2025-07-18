@@ -6,9 +6,10 @@ from isaacsim.core.utils.types import ArticulationAction
 from isaacsim.examples.interactive.base_sample import BaseSample
 from .ur5_policy import UR5GraspPolicy
 from .ur5controller import UR5Controller  
-
+import os
 
 class UR5GraspExample(BaseSample):
+    
     def __init__(self) -> None:
         super().__init__()
         self._world_settings["stage_units_in_meters"] = 1.0
@@ -24,9 +25,10 @@ class UR5GraspExample(BaseSample):
             dynamic_friction=0.5,
             restitution=0.0,
         )
-
+        dir = os.path.dirname(__file__)
         table_prim = "/World/Table"
-        table_usd = "/home/inaki/isaacsim/isaacsim/_build/linux-x86_64/release/exts/isaacsim.examples.interactive/isaacsim/examples/interactive/ur5/table.usd"
+        #table_usd = "/home/inaki/IsaacSim/source/extensions/isaacsim.examples.interactive/isaacsim/examples/interactive/ur5/table.usd"
+        table_usd=os.path.join(dir, "table.usd")
         add_reference_to_stage(table_usd, table_prim)
         self.table = SingleArticulation(
             prim_path=table_prim,

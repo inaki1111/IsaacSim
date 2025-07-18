@@ -86,9 +86,9 @@ class UIBuilder:
             size=0.05,
             color=np.array([255, 0, 0]))
         self.rmpflow = RmpFlow(
-            robot_description_path="/home/inaki/isaacsim/ur5/ur5_RMPflow/ur5_RMPflow_python/ur5_lula.yaml",
-            urdf_path="/home/inaki/isaacsim/ur5/ur5_RMPflow/ur5_RMPflow_python/ur5.urdf",
-            rmpflow_config_path="/home/inaki/isaacsim/ur5/ur5_RMPflow/ur5_RMPflow_python/rmpflow.yaml",
+            robot_description_path="/home/inaki/IsaacSim/ur5/ur5_RMPflow/ur5_RMPflow_python/ur5_lula.yaml",
+            urdf_path="/home/inaki/IsaacSim/ur5/ur5_RMPflow/ur5_RMPflow_python/ur5.urdf",
+            rmpflow_config_path="/home/inaki/IsaacSim/ur5/ur5_RMPflow/ur5_RMPflow_python/rmpflow.yaml",
             end_effector_frame_name="robotiq_85_base_link",
             maximum_substep_size=0.0034
         )
@@ -110,7 +110,7 @@ class UIBuilder:
 
     def _setup_scene(self):
         robot_path = "/ur5"
-        usd_path = "/home/inaki/isaacsim/ur5/ur5_RMPflow/ur5_RMPflow_python/ur5_standalone.usd"
+        usd_path = "/home/inaki/IsaacSim/ur5/ur5_RMPflow/ur5_RMPflow_python/ur5_standalone.usdz"
         create_new_stage()
         UsdLux.SphereLight.Define(get_current_stage(), Sdf.Path("/World/SphereLight")) \
             .CreateIntensityAttr(100000)

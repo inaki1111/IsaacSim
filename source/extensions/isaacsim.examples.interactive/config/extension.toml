@@ -88,6 +88,10 @@ name = "isaacsim.examples.interactive.getting_started"
 [[python.module]]
 name = "isaacsim.examples.interactive.franka"
 
+
+[[python.module]]
+name = "isaacsim.examples.interactive.ur5"
+
 [[test]]
 timeout = 900
 

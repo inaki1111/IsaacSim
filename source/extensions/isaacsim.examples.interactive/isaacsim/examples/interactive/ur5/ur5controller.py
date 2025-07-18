@@ -1,18 +1,30 @@
 import numpy as np
 from isaacsim.robot_motion.motion_generation import RmpFlow, ArticulationMotionPolicy
-
+import os
 class UR5Controller:
     def __init__(self, robot):
         self.robot = robot
+        dir = os.path.dirname(__file__)
+        # rmp flow files 
+        """self.rmpflow = RmpFlow(
+            robot_description_path="/home/inaki/IsaacSim/ur5/ur5_RMPflow/ur5_RMPflow_python/ur5_lula.yaml",
+            urdf_path="/home/inaki/IsaacSim/ur5/ur5_RMPflow/ur5_RMPflow_python/ur5.urdf",
+            rmpflow_config_path="/home/inaki/IsaacSim/ur5/ur5_RMPflow/ur5_RMPflow_python/rmpflow.yaml",
+            end_effector_frame_name="wrist_3_link",
+            maximum_substep_size=0.0034,
+        )"""
+
 
         # rmp flow files 
         self.rmpflow = RmpFlow(
-            robot_description_path="/home/inaki/isaacsim/ur5/ur5_RMPflow/ur5_RMPflow_python/ur5_lula.yaml",
-            urdf_path="/home/inaki/isaacsim/ur5/ur5_RMPflow/ur5_RMPflow_python/ur5.urdf",
-            rmpflow_config_path="/home/inaki/isaacsim/ur5/ur5_RMPflow/ur5_RMPflow_python/rmpflow.yaml",
+            robot_description_path=os.path.join(dir, "ur5_lula.yaml"),
+            urdf_path=os.path.join(dir, "ur5.urdf"),
+            rmpflow_config_path=os.path.join(dir, "rmpflow.yaml"),
             end_effector_frame_name="wrist_3_link",
             maximum_substep_size=0.0034,
         )
+
+
         self.motion_policy = ArticulationMotionPolicy(self.robot, self.rmpflow, 1.0/400.0)
 
         # offset of the gripper
