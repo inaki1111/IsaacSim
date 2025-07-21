@@ -49,6 +49,13 @@ name = "isaacsim.ros2.bridge.impl.samples.ros_waypoint_follower_sample"
 [[python.module]]
 name = "isaacsim.ros2.bridge.impl.samples.ros_moveit_sample"
 
+
+[[python.module]]
+name = "isaacsim.ros2.bridge.impl.samples.ros2_ur5"
+
+[[python.module]]
+name = "isaacsim.ros2.bridge.impl.samples.ros2_ur5_real_robot"
+
 [[python.module]]
 name = "isaacsim.ros2.bridge.impl.og_shortcuts.og_shortcut_menu"
 
