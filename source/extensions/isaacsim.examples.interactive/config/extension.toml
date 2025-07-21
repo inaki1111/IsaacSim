@@ -90,7 +90,7 @@ name = "isaacsim.examples.interactive.franka"
 
 
 [[python.module]]
-name = "isaacsim.examples.interactive.ur5"
+name = "isaacsim.examples.interactive.ur5_sim2real"
 
 [[test]]
 timeout = 900
