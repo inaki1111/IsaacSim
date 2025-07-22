@@ -38,7 +38,7 @@ class UR5Controller:
         og.Controller.set(
             "/ActionGraph/PublishJointState.inputs:message",
             {
-                "name": "ur5_joint_command",
+                "name": "joint_states_command",
                 "position": art_action.joint_positions.tolist(),
                 "velocity": [],
                 "effort": [],

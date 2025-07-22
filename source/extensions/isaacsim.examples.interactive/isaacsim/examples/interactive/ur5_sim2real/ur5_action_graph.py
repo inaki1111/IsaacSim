@@ -31,8 +31,8 @@ def create_ur5_action_graph_for_joint_state(pub_topic="/joint_states_command", s
                 (f"{NODE_SUB}.outputs:effortCommand", "ArticulationController.inputs:effortCommand"),
             ],
             og.Controller.Keys.SET_VALUES: [
-                ("ArticulationController.inputs:robotPath", "/ur5/root_joint"),
-                ("PublishJointState.inputs:targetPrim", "/ur5/root_joint"),
+                ("ArticulationController.inputs:robotPath", "/World/ur5/root_joint"),
+                ("PublishJointState.inputs:targetPrim", "/World/ur5/root_joint"),
                 ("PublishJointState.inputs:topicName", pub_topic),
                 (f"{NODE_SUB}.inputs:topicName", sub_topic),
             ],

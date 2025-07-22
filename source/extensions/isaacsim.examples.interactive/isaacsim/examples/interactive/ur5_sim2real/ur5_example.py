@@ -29,8 +29,8 @@ class UR5GraspExample(BaseSample):
         )
 
         create_ur5_action_graph_for_joint_state(
-            pub_topic="/joint_states",
-            sub_topic="/ur5/command"
+            pub_topic="/joint_states_command",
+            sub_topic="joint_states"
         )
 
 
