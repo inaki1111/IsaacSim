@@ -31,21 +31,48 @@ class UR5Controller:
         )
 
         art_action = self.motion_policy.get_next_articulation_action()
+        print(f"Articulation action: {art_action}")
         if art_action.joint_positions is None:
             return
 
         # Publicar a ROS2 vía OmniGraph (PublishJointState)
+        jp = art_action.joint_positions
+        jv = art_action.joint_velocities
+
         og.Controller.set(
             "/ActionGraph/PublishJointState.inputs:message",
             {
                 "name": "joint_states_command",
-                "position": art_action.joint_positions.tolist(),
-                "velocity": [],
+
+                # Lista manual de posiciones, en el orden de tus joints:
+                "position": [
+                    float(jp[0]),  # shoulder_pan_joint
+                    float(jp[1]),  # shoulder_lift_joint
+                    float(jp[2]),  # elbow_joint
+                    float(jp[3]),  # wrist_2_joint
+                    float(jp[4]),  # wrist_3_joint
+                    float(jp[5]),  # wrist_1_joint
+
+                ],
+
+                # Lista manual de velocidades, en el mismo orden:
+                "velocity": [
+                    float(jv[0]),  # shoulder_pan_joint
+                    float(jv[1]),  # shoulder_lift_joint
+                    float(jv[2]),  # elbow_joint
+                    float(jv[3]),  # wrist_2_joint
+                    float(jv[4]),  # wrist_3_joint
+                    float(jv[5]),  # wrist_1_joint
+                ],
+
                 "effort": [],
+
                 "header": {
                     "stamp": {"sec": 0, "nanosec": 0},
                     "frame_id": "",
                 },
+
+                # Mantienes self.joint_names si lo necesitas en otro sitio
                 "joint_names": self.joint_names,
             }
         )
