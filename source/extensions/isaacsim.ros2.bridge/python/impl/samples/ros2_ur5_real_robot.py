@@ -68,17 +68,13 @@ class Extension(omni.ext.IExt):
                         ("Context", "isaacsim.ros2.bridge.ROS2Context"),
                         ("SubscribeJointState", "isaacsim.ros2.bridge.ROS2SubscribeJointState"),
                         ("PublishClock", "isaacsim.ros2.bridge.ROS2PublishClock"),
-                        ("DebugPrint", "isaacsim.ros2.bridge.ROS2DebugPrint"),
                     ],
                     og.Controller.Keys.CONNECT: [
                         ("OnPlaybackTick.outputs:tick", "SubscribeJointState.inputs:execIn"),
                         ("OnPlaybackTick.outputs:tick", "PublishClock.inputs:execIn"),
-                        ("OnPlaybackTick.outputs:tick", "DebugPrint.inputs:execIn"),
                         ("Context.outputs:context", "SubscribeJointState.inputs:context"),
                         ("Context.outputs:context", "PublishClock.inputs:context"),
-                        ("Context.outputs:context", "DebugPrint.inputs:context"),
                         ("ReadSimTime.outputs:simulationTime", "PublishClock.inputs:timeStamp"),
-                        ("SubscribeJointState.outputs:jointState", "DebugPrint.inputs:inMessage"),
                     ],
                     og.Controller.Keys.SET_VALUES: [
                         ("SubscribeJointState.inputs:topicName", "joint_states"),

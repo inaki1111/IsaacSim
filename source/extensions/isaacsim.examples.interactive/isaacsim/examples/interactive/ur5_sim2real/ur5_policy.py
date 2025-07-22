@@ -1,10 +1,12 @@
+# ur5_grasp_policy.py
 from typing import Optional
 import os
 import numpy as np
+import omni.graph.core as og
 
 from isaacsim.core.utils.prims import get_prim_at_path
 from isaacsim.robot.policy.examples.controllers import PolicyController
-
+from .ur5_action_graph import GRAPH_PATH, NODE_SUB
 
 class UR5GraspPolicy(PolicyController):
     def __init__(
@@ -17,14 +19,16 @@ class UR5GraspPolicy(PolicyController):
         position: Optional[np.ndarray] = None,
         orientation: Optional[np.ndarray] = None,
     ) -> None:
+        # El grafo ROS2→OmniGraph se crea en setup_scene del Example, no aquí
         if usd_path is None:
             usd_path = os.path.join(os.path.dirname(__file__), "ur5.usdz")
         super().__init__(name, prim_path, root_path, usd_path, position, orientation)
 
-        dir = os.path.dirname(__file__)
+        # Carga de la política entrenada
+        dir_path = os.path.dirname(__file__)
         self.load_policy(
-            os.path.join(dir, "policy.pt"),
-            os.path.join(dir, "env.yaml"),
+            os.path.join(dir_path, "policy.pt"),
+            os.path.join(dir_path, "env.yaml"),
         )
 
         self.object           = obj
@@ -33,9 +37,8 @@ class UR5GraspPolicy(PolicyController):
         self._previous_action = np.zeros(8, dtype=np.float32)
         self._policy_counter  = 0
 
-        # offset of the end effector
-        self.pos_offset_ee   = np.zeros(3, dtype=np.float32)
-        self.orn_offset_ee   = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32)
+        self.pos_offset_ee    = np.zeros(3, dtype=np.float32)
+        self.orn_offset_ee    = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32)
 
     def initialize(self, physics_sim_view=None) -> None:
         super().initialize(
@@ -53,32 +56,54 @@ class UR5GraspPolicy(PolicyController):
         self.robot.set_sleep_threshold(0)
 
     def _compute_observation(self) -> np.ndarray:
-        jp = self.robot.get_joint_positions()
-        jv = self.robot.get_joint_velocities()
-        obs = np.zeros(42, dtype=np.float32)
+        # Leer posiciones y velocidades desde OmniGraph
+        pos_attr = f"{GRAPH_PATH}/{NODE_SUB}.outputs:positionCommand"
+        vel_attr = f"{GRAPH_PATH}/{NODE_SUB}.outputs:velocityCommand"
+        try:
+            joint_positions = og.Controller.attribute(pos_attr).get()
+            #print(f"Joint positions: {joint_positions}")
+            joint_velocities = og.Controller.attribute(vel_attr).get()
+        except Exception as e:
+            raise RuntimeError(f"No pude leer JointState desde OmniGraph: {e}")
 
-        # Joint positions & velocities
+        if joint_positions is None or joint_velocities is None:
+            raise RuntimeError("JointState aún no disponible desde ROS2 bridge")
+
+        
+        jp = np.pad(np.array(joint_positions, dtype=np.float32), (0, 5), mode='constant')[:12]
+        jv = np.pad(np.array(joint_velocities, dtype=np.float32), (0, 5), mode='constant')[:12]
+
+        val_jp = jp[6]
+        val_jv = jv[6]
+
+        jp[6] = 0.0
+        jv[6] = 0.0
+
+        jp[8] = val_jp
+        jp[11] = val_jp
+
+        jv[8] = val_jv
+        jv[11] = val_jv
+
+        #print(f"Joint positions: {jp}")
+        #print(f"Joint velocities: {jv}")
+
+        obs = np.zeros(42, dtype=np.float32)
         obs[0:12]  = jp[:12] - self.default_pos[:12]
         obs[12:24] = jv[:12] - self.default_vel[:12]
 
-        # Position of the object and target hardcoded for testing
-        # Direct assignment without querying environment
-        #pos_obj = (0.5, 0.0, 0.0)
-        pos_obj, quat_obj = self.object.get_world_pose()
-        #print(f"Object position: {pos_obj}, orientation: {quat_obj}")
-
+        # Estado del objeto en escena
+        pos_obj, _ = self.object.get_world_pose()
         obs[24:27] = np.array(pos_obj, dtype=np.float32)
 
-        goal_pos = (0.5, 0.5, 0.5)
-
+        # Objetivo fijo (ejemplo)
+        goal_pos  = (0.5, 0.5, 0.5)
         goal_quat = (1.0, 0.0, 0.0, 0.0)
         obs[27:30] = np.array(goal_pos, dtype=np.float32)
         obs[30:34] = np.array(goal_quat, dtype=np.float32)
 
-        # Last action taken
+        # Última acción tomada
         obs[34:42] = self._previous_action
-
-        #print("Observation:", obs)
         return obs
 
     def forward(self, dt: float) -> None:
@@ -87,7 +112,6 @@ class UR5GraspPolicy(PolicyController):
             a   = self._compute_action(obs)
             self._previous_action = a.copy()
 
-            # Pose and gripper outputs
             pose_raw    = a[:7]
             gripper_raw = float(a[7])
 
@@ -100,4 +124,4 @@ class UR5GraspPolicy(PolicyController):
         self._policy_counter += 1
 
     def _get_target_command(self) -> np.ndarray:
-        raise NotImplementedError("error")
+        raise NotImplementedError("UR5GraspPolicy no implementa _get_target_command")

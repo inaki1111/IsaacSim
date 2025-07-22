@@ -1,15 +1,16 @@
+# ur5_example.py
+import os
 import numpy as np
 import omni
+
 from isaacsim.core.utils.stage import add_reference_to_stage
 from isaacsim.core.prims import SingleArticulation
-from isaacsim.core.utils.types import ArticulationAction
 from isaacsim.examples.interactive.base_sample import BaseSample
 from .ur5_policy import UR5GraspPolicy
-from .ur5controller import UR5Controller  
-import os
+from .ur5controller import UR5Controller
+from .ur5_action_graph import create_ur5_action_graph_for_joint_state
 
 class UR5GraspExample(BaseSample):
-    
     def __init__(self) -> None:
         super().__init__()
         self._world_settings["stage_units_in_meters"] = 1.0
@@ -17,6 +18,7 @@ class UR5GraspExample(BaseSample):
         self._world_settings["rendering_dt"] = 1.0 / 60.0
 
     def setup_scene(self) -> None:
+        # Ground plane
         self.get_world().scene.add_default_ground_plane(
             z_position=-0.63,
             name="ground_plane",
@@ -25,10 +27,18 @@ class UR5GraspExample(BaseSample):
             dynamic_friction=0.5,
             restitution=0.0,
         )
-        dir = os.path.dirname(__file__)
+
+        create_ur5_action_graph_for_joint_state(
+            pub_topic="/joint_states",
+            sub_topic="/ur5/command"
+        )
+
+
+
+        # Mesa
+        dir_path = os.path.dirname(__file__)
         table_prim = "/World/Table"
-        #table_usd = "/home/inaki/IsaacSim/source/extensions/isaacsim.examples.interactive/isaacsim/examples/interactive/ur5/table.usd"
-        table_usd=os.path.join(dir, "table.usd")
+        table_usd = os.path.join(dir_path, "table.usd")
         add_reference_to_stage(table_usd, table_prim)
         self.table = SingleArticulation(
             prim_path=table_prim,
@@ -37,6 +47,7 @@ class UR5GraspExample(BaseSample):
             orientation=np.array([1.0, 0.0, 0.0, 0.0]),
         )
 
+        # Objeto dinámico
         obj_prim = "/World/Object"
         cube_usd = (
             "http://omniverse-content-production.s3-us-west-2.amazonaws.com"
@@ -49,21 +60,33 @@ class UR5GraspExample(BaseSample):
             position=np.array([0.5, 0.0, 0.03]),
             orientation=np.array([1.0, 0.0, 0.0, 0.0]),
         )
-        # policy controller
+
+        # Política y controlador
         self.policy = UR5GraspPolicy(
             prim_path="/World/ur5",
             obj=self.object,
             name="ur5_grasp",
         )
-        self.controller = UR5Controller(self.policy.robot)
 
+        joint_names = [
+            "shoulder_pan_joint",
+            "shoulder_lift_joint",
+            "elbow_joint",
+            "wrist_1_joint",
+            "wrist_2_joint",
+            "wrist_3_joint",
+        ]
+
+        self.controller = UR5Controller(self.policy.robot, joint_names)
+
+        # Suscripción a evento STOP
         timeline = omni.timeline.get_timeline_interface()
         self._timer_sub = (
             timeline.get_timeline_event_stream()
-            .create_subscription_to_pop_by_type(
-                int(omni.timeline.TimelineEventType.STOP),
-                self._on_timeline_stop,
-            )
+                .create_subscription_to_pop_by_type(
+                    int(omni.timeline.TimelineEventType.STOP),
+                    self._on_timeline_stop,
+                )
         )
 
     async def setup_post_load(self) -> None:
@@ -81,7 +104,7 @@ class UR5GraspExample(BaseSample):
     def _on_physics(self, step_size: float) -> None:
         if self._physics_ready:
             self.policy.forward(step_size)
-            action = self.policy.desired_pose, self.policy.gripper_action
+            action = (self.policy.desired_pose, self.policy.gripper_action)
             self.controller.apply_action(action)
         else:
             self._physics_ready = True
