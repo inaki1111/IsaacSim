@@ -70,14 +70,18 @@ class UR5GraspPolicy(PolicyController):
             raise RuntimeError("JointState aún no disponible desde ROS2 bridge")
 
         
+        joint_positions = list(joint_positions)
+        joint_velocities = list(joint_velocities)
+
+        if len(joint_positions) == 6:
+            joint_positions.insert(6, 0.0)
+            joint_velocities.insert(6, 0.0)
+
         jp = np.pad(np.array(joint_positions, dtype=np.float32), (0, 5), mode='constant')[:12]
         jv = np.pad(np.array(joint_velocities, dtype=np.float32), (0, 5), mode='constant')[:12]
 
         val_jp = jp[6]
         val_jv = jv[6]
-
-        jp[6] = 0.0
-        jv[6] = 0.0
 
         jp[8] = val_jp
         jp[11] = val_jp
