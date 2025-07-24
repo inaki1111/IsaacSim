@@ -151,7 +151,16 @@ Navigate to the corresponding binary directory for your platform and run the exe
 **Linux:**
 ```bash
 cd _build/linux-x86_64/release
+```
+
+```bash
 ./isaac-sim.sh --allow-root
+```
+
+To run it in livestream mode
+
+```bash
+./isaac-sim.streaming.sh  --allow-root
 ```
 
 **Windows:**
