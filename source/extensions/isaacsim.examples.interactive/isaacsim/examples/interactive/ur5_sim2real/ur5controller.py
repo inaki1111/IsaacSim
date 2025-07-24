@@ -35,7 +35,6 @@ class UR5Controller:
         if art_action.joint_positions is None:
             return
 
-        # Publicar a ROS2 vía OmniGraph (PublishJointState)
         jp = art_action.joint_positions
         jv = art_action.joint_velocities
 
@@ -44,7 +43,6 @@ class UR5Controller:
             {
                 "name": "joint_states_command",
 
-                # Lista manual de posiciones, en el orden de tus joints:
                 "position": [
                     float(jp[0]),  # shoulder_pan_joint
                     float(jp[1]),  # shoulder_lift_joint
@@ -55,7 +53,6 @@ class UR5Controller:
 
                 ],
 
-                # Lista manual de velocidades, en el mismo orden:
                 "velocity": [
                     float(jv[0]),  # shoulder_pan_joint
                     float(jv[1]),  # shoulder_lift_joint
@@ -72,7 +69,6 @@ class UR5Controller:
                     "frame_id": "",
                 },
 
-                # Mantienes self.joint_names si lo necesitas en otro sitio
                 "joint_names": self.joint_names,
             }
         )
