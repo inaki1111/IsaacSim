@@ -32,6 +32,7 @@ class UR5Controller:
 
         art_action = self.motion_policy.get_next_articulation_action()
         print(f"Articulation action: {art_action}")
+        print(f"Policy pos: {pose_raw}")
         if art_action.joint_positions is None:
             return
 
