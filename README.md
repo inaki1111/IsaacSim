@@ -172,6 +172,16 @@ isaac-sim.bat
 > NOTE: If this is your first time building Isaac Sim, you will be prompted to accept the Omniverse Licensing Terms.
 
 
+## UR5 Docker container
+
+![Isaac Sim](docs/readme/ur5_isaacsim.png)
+
+The steps to run Isaac sim with the UR5, please go to the corresponding [GitHub](https://github.com/inaki1111/ur5_gra_ros2). Yo will need to follow the steps to build and run the container and inside the container you can run IsaacSim with ROS2 Bridge that enables the ROS2 comunication.
+
+
+
+
+
 
 ## Advanced Build Options
 
