@@ -19,12 +19,12 @@ class UR5GraspPolicy(PolicyController):
         position: Optional[np.ndarray] = None,
         orientation: Optional[np.ndarray] = None,
     ) -> None:
-        # El grafo ROS2→OmniGraph se crea en setup_scene del Example, no aquí
+
         if usd_path is None:
             usd_path = os.path.join(os.path.dirname(__file__), "ur5.usdz")
         super().__init__(name, prim_path, root_path, usd_path, position, orientation)
 
-        # Carga de la política entrenada
+        #load the policy
         dir_path = os.path.dirname(__file__)
         self.load_policy(
             os.path.join(dir_path, "policy.pt"),
@@ -37,7 +37,8 @@ class UR5GraspPolicy(PolicyController):
         self._previous_action = np.zeros(8, dtype=np.float32)
         self._policy_counter  = 0
 
-        self.pos_offset_ee    = np.zeros(3, dtype=np.float32)
+       self.pos_offset_ee = [0.0, 0.2, 0.0]
+
         self.orn_offset_ee    = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32)
 
     def initialize(self, physics_sim_view=None) -> None:
@@ -56,7 +57,7 @@ class UR5GraspPolicy(PolicyController):
         self.robot.set_sleep_threshold(0)
 
     def _compute_observation(self) -> np.ndarray:
-        # Leer posiciones y velocidades desde OmniGraph
+        # read joint states of the robot
         pos_attr = f"{GRAPH_PATH}/{NODE_SUB}.outputs:positionCommand"
         vel_attr = f"{GRAPH_PATH}/{NODE_SUB}.outputs:velocityCommand"
         try:
@@ -96,17 +97,17 @@ class UR5GraspPolicy(PolicyController):
         obs[0:12]  = jp[:12] - self.default_pos[:12]
         obs[12:24] = jv[:12] - self.default_vel[:12]
 
-        # Estado del objeto en escena
+        # object in the scene
         pos_obj, _ = self.object.get_world_pose()
         obs[24:27] = np.array(pos_obj, dtype=np.float32)
 
-        # Objetivo fijo (ejemplo)
+        #objective
         goal_pos  = (0.5, 0.5, 0.5)
         goal_quat = (1.0, 0.0, 0.0, 0.0)
         obs[27:30] = np.array(goal_pos, dtype=np.float32)
         obs[30:34] = np.array(goal_quat, dtype=np.float32)
 
-        # Última acción tomada
+        # last action
         obs[34:42] = self._previous_action
         return obs
 
@@ -129,3 +130,4 @@ class UR5GraspPolicy(PolicyController):
 
     def _get_target_command(self) -> np.ndarray:
         raise NotImplementedError("UR5GraspPolicy no implementa _get_target_command")
+
