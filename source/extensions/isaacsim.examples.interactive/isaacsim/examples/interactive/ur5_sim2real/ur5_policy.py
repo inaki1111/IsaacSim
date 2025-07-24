@@ -37,7 +37,7 @@ class UR5GraspPolicy(PolicyController):
         self._previous_action = np.zeros(8, dtype=np.float32)
         self._policy_counter  = 0
 
-       self.pos_offset_ee = [0.0, 0.2, 0.0]
+        self.pos_offset_ee = [0.0, 0.2, 0.0]
 
         self.orn_offset_ee    = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32)
 
