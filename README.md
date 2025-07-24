@@ -180,7 +180,21 @@ The steps to run Isaac sim with the UR5, please go to the corresponding [GitHub]
 
 
 
+## Run the Policy in Isaac Sim
 
+The policy reads the joint states of the physical UR5 robot. However, the object position and goal position are currently hardcoded in the code. The output of the policy is then used to command the robot using [RMPflow](https://docs.isaacsim.omniverse.nvidia.com/latest/manipulators/concepts/rmpflow.html), and subsequently sent via a ROS 2 `JointState` message to control the robot. This message is received by an intermediary node that publishes the joint positions using the `joint_trajectory_controller`.
+
+> Note: The simulation shown in Isaac Sim only reads the joint states of the real robot and does not influence its movement.
+
+Before running the policy, make sure to:
+- Launch the `ur_control.launch` file to establish communication with the UR5.
+- Ensure the URCap ROS 2 interface is active on the robot’s teach pendant.
+- Start the intermediary node with:
+  ```bash
+  ros2 run reach joint_states_node
+
+
+![Isaac Sim](docs/readme/ur5_policy_isaacsim.gif)
 
 
 ## Advanced Build Options
