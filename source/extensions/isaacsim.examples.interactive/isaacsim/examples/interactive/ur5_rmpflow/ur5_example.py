@@ -69,7 +69,7 @@ class UR5RmpflowExample(BaseSample):
         # Create a red cuboid target in the scene
         self.cuboid = VisualCuboid(
             "/World/cuboid",
-            position=np.array([0.5, 0.0, 0.05]),
+            position=np.array([-0.5, -0.5, 0.5]),
             size=0.05,
             color=np.array([255, 0, 0]),
         )
