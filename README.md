@@ -232,6 +232,7 @@ cd _build/linux-x86_64/release
 
 
 Window / Examples / Robotics Example -> Policy / UR5_SIM2REAL
+
 ![Isaac Sim](docs/readme/ur5_policy_isaacsim.gif)
 
 ## Advanced Build Options
