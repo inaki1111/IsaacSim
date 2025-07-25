@@ -10,7 +10,7 @@ class UR5Controller:
 
         dir = os.path.dirname(__file__)
         self.rmpflow = RmpFlow(
-            robot_description_path=os.path.join(dir, "ur5_lula.yaml"),
+            
             urdf_path=os.path.join(dir, "ur5.urdf"),
             rmpflow_config_path=os.path.join(dir, "rmpflow.yaml"),
             end_effector_frame_name="wrist_3_link",

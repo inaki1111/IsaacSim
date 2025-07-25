@@ -3,10 +3,10 @@ import os
 import omni.ext
 from isaacsim.examples.browser import get_instance as get_browser_instance
 from isaacsim.examples.interactive.base_sample import BaseSampleUITemplate
-from isaacsim.examples.interactive.ur5_rmpflow.ur5_example import UR5GraspExample
+from isaacsim.examples.interactive.ur5_rmpflow.ur5_example import UR5RmpflowExample
 
 
-class UR5ExampleExtension(omni.ext.IExt):
+class UR5RmpflowExampleExtension(omni.ext.IExt):
     def on_startup(self, ext_id: str):
 
         self.example_name = "UR5_rmpflow"
@@ -20,7 +20,7 @@ class UR5ExampleExtension(omni.ext.IExt):
             "title": "Manipulator: UR5",
             "doc_link": "https://docs.isaacsim.omniverse.nvidia.com/latest/isaac_lab_tutorials/tutorial_policy_deployment.html",
             "overview": overview,
-            "sample": UR5GraspExample(),
+            "sample": UR5RmpflowExample(),
         }
 
         ui_handle = BaseSampleUITemplate(**ui_kwargs)

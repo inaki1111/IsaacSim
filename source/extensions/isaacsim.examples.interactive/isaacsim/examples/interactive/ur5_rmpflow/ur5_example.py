@@ -1,26 +1,51 @@
-# ur5_example.py
+# ur5_rmpflow_example.py
 
 import os
 import numpy as np
 import omni
+from pxr import Sdf, UsdLux
 
-from isaacsim.core.utils.stage import add_reference_to_stage
-from isaacsim.core.prims import SingleArticulation
 from isaacsim.examples.interactive.base_sample import BaseSample
-from .ur5controller import UR5Controller
+from isaacsim.core.utils.stage import get_current_stage, add_reference_to_stage
+from isaacsim.core.api.world import World
+from isaacsim.core.api.objects.cuboid import VisualCuboid
+from isaacsim.core.prims import SingleArticulation
+from isaacsim.robot_motion.motion_generation import RmpFlow, ArticulationMotionPolicy
+import omni.graph.core as og
+
 from .ur5_action_graph import create_ur5_action_graph_for_joint_state
 
-class UR5GraspExample(BaseSample):
-    def __init__(self) -> None:
+class UR5RmpflowExample(BaseSample):
+    def __init__(self):
         super().__init__()
-        # Set units and simulation timesteps
-        self._world_settings["stage_units_in_meters"] = 1.0
-        self._world_settings["physics_dt"] = 1.0 / 400.0
-        self._world_settings["rendering_dt"] = 1.0 / 60.0
+        # Configure world settings: units and time steps
+        self._world_settings = {
+            "stage_units_in_meters": 1.0,
+            "physics_dt": 1.0 / 400.0,
+            "rendering_dt": 1.0 / 60.0,
+        }
+        # Define joint names for the UR5
+        self.joint_names = [
+            "shoulder_pan_joint",
+            "shoulder_lift_joint",
+            "elbow_joint",
+            "wrist_1_joint",
+            "wrist_2_joint",
+            "wrist_3_joint",
+        ]
+        self._physics_ready = False
 
     def setup_scene(self) -> None:
-        # 1) Add a default ground plane
-        self.get_world().scene.add_default_ground_plane(
+        # Stage is already created by BaseSample; add a directional light
+        UsdLux.SphereLight.Define(
+            get_current_stage(), Sdf.Path("/World/SphereLight")
+        ).CreateIntensityAttr(100000)
+
+        # Get the world from BaseSample
+        world = self.get_world()
+
+        # Add a default ground plane
+        world.scene.add_default_ground_plane(
             z_position=-0.63,
             name="ground_plane",
             prim_path="/World/groundPlane",
@@ -29,89 +54,105 @@ class UR5GraspExample(BaseSample):
             restitution=0.0,
         )
 
-        # 2) Create the ROS2 <-> OmniGraph bridge for JointState messages
-        create_ur5_action_graph_for_joint_state(
-            pub_topic="/joint_states_command",
-            sub_topic="joint_states"
-        )
-
-        dir_path = os.path.dirname(__file__)
-
-        # 3) Load a table model (optional)
-        table_prim = "/World/Table"
-        table_usd = os.path.join(dir_path, "table.usd")
-        add_reference_to_stage(table_usd, table_prim)
-        self.table = SingleArticulation(
-            prim_path=table_prim,
-            name="Table",
-            position=np.array([0.5, 0.0, -0.63]),
-            orientation=np.array([1.0, 0.0, 0.0, 0.0]),
-        )
-
-        # 4) Load the UR5 robot from USD
-        ur5_prim = "/World/ur5"
-        ur5_usd = os.path.join(dir_path, "ur5.usd")
-        add_reference_to_stage(ur5_usd, ur5_prim)
-        self.ur5 = SingleArticulation(
-            prim_path=ur5_prim,
+        # Load the UR5 robot from USD and add to the scene
+        base_dir = os.path.dirname(__file__)
+        ur5_usd = os.path.join(base_dir, "ur5.usdz")
+        add_reference_to_stage(ur5_usd, "/World/ur5")
+        self.robot = SingleArticulation(
+            prim_path="/World/ur5",
             name="ur5",
             position=np.array([0.0, 0.0, 0.0]),
             orientation=np.array([1.0, 0.0, 0.0, 0.0]),
         )
+        world.scene.add(self.robot)
 
-        # 5) Initialize the RMP-Flow controller with joint names
-        joint_names = [
-            "shoulder_pan_joint",
-            "shoulder_lift_joint",
-            "elbow_joint",
-            "wrist_1_joint",
-            "wrist_2_joint",
-            "wrist_3_joint",
-        ]
-        self.controller = UR5Controller(self.ur5, joint_names)
-
-        # 6) Subscribe to the STOP event to reset physics readiness
-        timeline = omni.timeline.get_timeline_interface()
-        self._timer_sub = (
-            timeline.get_timeline_event_stream()
-                    .create_subscription_to_pop_by_type(
-                        int(omni.timeline.TimelineEventType.STOP),
-                        self._on_timeline_stop,
-                    )
+        # Create a red cuboid target in the scene
+        self.cuboid = VisualCuboid(
+            "/World/cuboid",
+            position=np.array([0.5, 0.0, 0.05]),
+            size=0.05,
+            color=np.array([255, 0, 0]),
         )
+        world.scene.add(self.cuboid)
+
+        # Setup ROS2 <-> OmniGraph bridge for joint_state commands
+        create_ur5_action_graph_for_joint_state(
+            pub_topic="/joint_states_command", sub_topic="joint_states"
+        )
+
+        # Initialize RMP-Flow controller and motion policy
+        self.rmpflow = RmpFlow(
+            # Path to URDF file for kinematic description
+            urdf_path=os.path.join(base_dir, "ur5.urdf"),
+            # Path to robot description yaml (SRDF or Lula-generated yaml)
+            robot_description_path=os.path.join(base_dir, "ur5_lula.yaml"),
+            # RMP-Flow configuration file
+            rmpflow_config_path=os.path.join(base_dir, "rmpflow.yaml"),
+            end_effector_frame_name="wrist_3_link",
+            maximum_substep_size=self._world_settings["physics_dt"],
+        )
+        self.motion_policy = ArticulationMotionPolicy(
+            self.robot, self.rmpflow, self._world_settings["rendering_dt"]
+        )
+
+
+        # Subscribe to physics callback for control loop
+        world.add_physics_callback("physics_step", self._on_physics)
 
     async def setup_post_load(self) -> None:
-        # Register physics callback after scene load
-        self._physics_ready = False
-        self.get_world().add_physics_callback(
-            "physics_step", callback_fn=self._on_physics
-        )
+        # Start the simulation after scene load
         await self.get_world().play_async()
 
     async def setup_post_reset(self) -> None:
-        # Reset physics readiness after a world reset
+        # Reset physics readiness on world reset
         self._physics_ready = False
         await self.get_world().play_async()
 
     def _on_physics(self, step_size: float) -> None:
+        # Initialize joint state on the first physics step
         if not self._physics_ready:
-            # First physics step: set an initial joint state (all zeros)
-            initial_positions = np.zeros(6, dtype=np.float32)
-            self.ur5.set_joints_default_state(initial_positions)
+            zero_q = np.zeros(len(self.joint_names), dtype=np.float32)
+            self.robot.set_joints_default_state(zero_q)
             self._physics_ready = True
             return
 
-        # On each subsequent physics step, drive the end effector to (0.5, 0.5, 0.5)
-        # and publish the resulting joint states
-        self.controller.apply_action(None)
+        # Read the cuboid world position
+        cube_pos, _ = self.cuboid.get_world_pose()
 
-    def _on_timeline_stop(self, event) -> None:
-        # Reset the flag so that next run re-initializes joint states
-        self._physics_ready = False
+        # Set the RMP-Flow end-effector target to the cuboid position
+        self.rmpflow.set_end_effector_target(target_position=cube_pos)
+
+        # Compute the next articulation action
+        art_action = self.motion_policy.get_next_articulation_action()
+        if art_action.joint_positions is None:
+            return
+
+        # Apply high gains for precise tracking
+        n = len(self.joint_names)
+        kp = 1e15 * np.ones(n)
+        kd = 1e14 * np.ones(n)
+        self.robot.get_articulation_controller().set_gains(kp, kd)
+
+        # Apply the computed action to the robot
+        self.robot.apply_action(art_action)
+
+        # Publish joint commands via OmniGraph to ROS2
+        jp = art_action.joint_positions.tolist()
+        jv = art_action.joint_velocities.tolist()
+        og.Controller.set(
+            "/ActionGraph/PublishJointState.inputs:message",
+            {
+                "name": "joint_states_command",
+                "position": jp,
+                "velocity": jv,
+                "effort": [],
+                "header": {"stamp": {"sec": 0, "nanosec": 0}, "frame_id": ""},
+                "joint_names": self.joint_names,
+            },
+        )
 
     def world_cleanup(self) -> None:
-        # Remove physics callback and subscription when done
+        # Remove physics callback when cleaning up
         world = self.get_world()
         if world.physics_callback_exists("physics_step"):
             world.remove_physics_callback("physics_step")
-        self._timer_sub = None
