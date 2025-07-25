@@ -172,30 +172,67 @@ isaac-sim.bat
 > NOTE: If this is your first time building Isaac Sim, you will be prompted to accept the Omniverse Licensing Terms.
 
 
-## UR5 Docker container
+## UR5 Docker Container
 
 ![Isaac Sim](docs/readme/ur5_isaacsim.png)
 
-The steps to run Isaac sim with the UR5, please go to the corresponding [GitHub](https://github.com/inaki1111/ur5_gra_ros2). Yo will need to follow the steps to build and run the container and inside the container you can run IsaacSim with ROS2 Bridge that enables the ROS2 comunication.
+To run Isaac Sim with the UR5, please refer to the corresponding [GitHub repository](https://github.com/inaki1111/ur5_gra_ros2). You will need to follow the instructions to build and run the container. Inside the container, you can launch Isaac Sim with the ROS 2 bridge, which enables ROS 2 communication.
 
+To enable communication between the host machine and the UR5 robot, first launch the UR control interface:
 
+```bash
+ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur5e robot_ip:=192.168.0.2
+```
+
+---
 
 ## Run the Policy in Isaac Sim
 
-The policy reads the joint states of the physical UR5 robot. However, the object position and goal position are currently hardcoded in the code. The output of the policy is then used to command the robot using [RMPflow](https://docs.isaacsim.omniverse.nvidia.com/latest/manipulators/concepts/rmpflow.html), and subsequently sent via a ROS 2 `JointState` message to control the robot. This message is received by an intermediary node that publishes the joint positions using the `joint_trajectory_controller`.
+The policy reads the joint states of the physical UR5 robot. However, the object position and goal position are currently hardcoded in the code. The output of the policy is then used to command the robot using [RMPflow](https://docs.isaacsim.omniverse.nvidia.com/latest/manipulators/concepts/rmpflow.html), and the resulting joint positions are sent via a ROS 2 `JointState` message. An intermediary node receives this message and publishes the trajectory using the `joint_trajectory_controller`.
 
-> Note: The simulation shown in Isaac Sim only reads the joint states of the real robot and does not influence its movement.
+> **Note:** The simulation in Isaac Sim only visualizes the current joint states of the real robot — it does not control the robot itself.
 
-Before running the policy, make sure to:
-- Launch the `ur_control.launch` file to establish communication with the UR5.
-- Ensure the URCap ROS 2 interface is active on the robot’s teach pendant.
-- Start the intermediary node with:
-  ```bash
-  ros2 run reach joint_states_node
+### Before running the policy, make sure to:
+
+1. Launch the UR control interface as shown above.
+
+2. Make sure the URCap ROS 2 interface is running on the robot's teach pendant.
+
+3. In another terminal, activate the `joint_trajectory_controller` and deactivate the unused ones:
+
+```bash
+docker exec -it ros2-ur5-jazzy bash
+```
+
+```bash
+ros2 control switch_controllers \
+  --activate joint_trajectory_controller \
+  --deactivate \
+    forward_position_controller \
+    forward_velocity_controller \
+    scaled_joint_trajectory_controller \
+    passthrough_trajectory_controller \
+    force_mode_controller \
+    freedrive_mode_controller
+```
+
+4. In a separate terminal, start the intermediary node:
+
+```bash
+ros2 run reach joint_states_node
+```
+
+5. Finally, launch Isaac Sim:
+
+```bash
+docker exec -it ros2-ur5-jazzy bash
+cd _build/linux-x86_64/release
+./isaac-sim.sh --allow-root
+```
 
 
+Window / Examples / Robotics Example -> Policy / UR5_SIM2REAL
 ![Isaac Sim](docs/readme/ur5_policy_isaacsim.gif)
-
 
 ## Advanced Build Options
 

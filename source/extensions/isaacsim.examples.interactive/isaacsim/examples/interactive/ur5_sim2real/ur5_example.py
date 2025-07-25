@@ -35,7 +35,7 @@ class UR5GraspExample(BaseSample):
 
 
 
-        # Mesa
+        # Table
         dir_path = os.path.dirname(__file__)
         table_prim = "/World/Table"
         table_usd = os.path.join(dir_path, "table.usd")
@@ -47,7 +47,7 @@ class UR5GraspExample(BaseSample):
             orientation=np.array([1.0, 0.0, 0.0, 0.0]),
         )
 
-        # Objeto dinámico
+        # Object
         obj_prim = "/World/Object"
         cube_usd = (
             "http://omniverse-content-production.s3-us-west-2.amazonaws.com"
@@ -61,7 +61,7 @@ class UR5GraspExample(BaseSample):
             orientation=np.array([1.0, 0.0, 0.0, 0.0]),
         )
 
-        # Política y controlador
+        # Policy and controller
         self.policy = UR5GraspPolicy(
             prim_path="/World/ur5",
             obj=self.object,
@@ -79,7 +79,7 @@ class UR5GraspExample(BaseSample):
 
         self.controller = UR5Controller(self.policy.robot, joint_names)
 
-        # Suscripción a evento STOP
+        # stop simulation on stop event
         timeline = omni.timeline.get_timeline_interface()
         self._timer_sub = (
             timeline.get_timeline_event_stream()

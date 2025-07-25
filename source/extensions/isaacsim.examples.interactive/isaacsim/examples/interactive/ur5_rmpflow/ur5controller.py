@@ -21,23 +21,23 @@ class UR5Controller:
         self.body_offset = np.array([0.0, 0.1, 0.0], dtype=np.float32)
 
     def apply_action(self, action):
-        # En lugar de leer de `action`, usamos siempre esta posición y orientación:
+        # define target position and orientation for the end effector
         target_pos  = np.array([0.5, 0.5, 0.5], dtype=np.float32)
         target_quat = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32)
 
-        # Fijamos el objetivo al RMP-Flow
+        # add the target to the RMPFlow
         self.rmpflow.set_end_effector_target(
             target_position=target_pos,
             target_orientation=target_quat,
         )
 
-        # Obtenemos la siguiente acción de articulación
+        # obtain the next articulation action from the motion policy
         art_action = self.motion_policy.get_next_articulation_action()
         print(f"Articulation action: {art_action}")
         if art_action.joint_positions is None:
             return
 
-        # Publicar a ROS2 vía OmniGraph (PublishJointState)
+        #  OmniGraph (PublishJointState)
         jp = art_action.joint_positions
         jv = art_action.joint_velocities
 
