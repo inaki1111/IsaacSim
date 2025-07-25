@@ -198,7 +198,7 @@ The policy reads the joint states of the physical UR5 robot. However, the object
 
 2. Make sure the URCap ROS 2 interface is running on the robot's teach pendant.
 
-3. In another terminal, activate the `joint_trajectory_controller` and deactivate the unused ones:
+3. In another terminal, activate the `joint_trajectory_controller`:
 
 ```bash
 docker exec -it ros2-ur5-jazzy bash
@@ -216,7 +216,7 @@ ros2 control switch_controllers \
     freedrive_mode_controller
 ```
 
-4. In a separate terminal, start the intermediary node:
+4. In a separate terminal, start the intermediary node, that reads the output of the RMPFlow controller and calls the controller:
 
 ```bash
 ros2 run reach joint_states_node
