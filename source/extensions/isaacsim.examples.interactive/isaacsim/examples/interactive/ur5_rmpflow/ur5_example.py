@@ -46,7 +46,7 @@ class UR5RmpflowExample(BaseSample):
 
         # Add a default ground plane
         world.scene.add_default_ground_plane(
-            z_position=0.0
+            z_position=0.0,
             name="ground_plane",
             prim_path="/World/groundPlane",
             static_friction=0.5,
