@@ -46,7 +46,7 @@ class UR5RmpflowExample(BaseSample):
 
         # Add a default ground plane
         world.scene.add_default_ground_plane(
-            z_position=-0.63,
+            z_position=0.0
             name="ground_plane",
             prim_path="/World/groundPlane",
             static_friction=0.5,
@@ -61,7 +61,7 @@ class UR5RmpflowExample(BaseSample):
         self.robot = SingleArticulation(
             prim_path="/World/ur5",
             name="ur5",
-            position=np.array([0.0, 0.0, 0.0]),
+            position=np.array([-0.16810509302823873, 0.5859542808301269, 0.26483031099633514]),
             orientation=np.array([1.0, 0.0, 0.0, 0.0]),
         )
         world.scene.add(self.robot)
