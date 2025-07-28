@@ -61,7 +61,7 @@ class UR5RmpflowExample(BaseSample):
         self.robot = SingleArticulation(
             prim_path="/World/ur5",
             name="ur5",
-            position=np.array([-0.16810509302823873, 0.5859542808301269, 0.26483031099633514]),
+            position=np.array([0.0,0.0,0.0]),
             orientation=np.array([1.0, 0.0, 0.0, 0.0]),
         )
         world.scene.add(self.robot)
@@ -69,7 +69,7 @@ class UR5RmpflowExample(BaseSample):
         # Create a red cuboid target in the scene
         self.cuboid = VisualCuboid(
             "/World/cuboid",
-            position=np.array([-0.5, -0.5, 0.5]),
+            position=np.array([-0.16810509302823873, 0.5859542808301269, 0.26483031099633514]),
             size=0.05,
             color=np.array([255, 0, 0]),
         )
