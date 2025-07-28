@@ -22,7 +22,7 @@ class UR5Controller:
 
     def apply_action(self, action):
         # define target position and orientation for the end effector
-        target_pos  = np.array([0.5, 0.5, 0.5], dtype=np.float32)
+        target_pos  = np.array([-0.16810509302823873, 0.5859542808301269, 0.26483031099633514], dtype=np.float32)
         target_quat = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32)
 
         # add the target to the RMPFlow
